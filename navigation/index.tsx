@@ -8,40 +8,47 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import { ColorSchemeName, Pressable, StyleSheet } from 'react-native';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import ModalScreen from '../screens/ModalScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
+import HomeScreen from '../screens/HomeScreen';
+import cardsScreen from '../screens/cardsScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
-import LinkingConfiguration from './LinkingConfiguration';
+import SellItems from '../screens/sellItems';
+import { Avatar, Searchbar } from 'react-native-paper';
+import itempage from '../screens/itempage';
+
+//firebase
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer
-      linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      theme={colorScheme == 'dark' ? DarkTheme : DefaultTheme}>
       <RootNavigator />
     </NavigationContainer>
   );
 }
 
 /**
- * A root stack navigator is often used for displaying modals on top of all other content.
- * https://reactnavigation.org/docs/modal
+ * A root stack navigator is often used for displaying Profiles on top of all other content.
+ * https://reactnavigation.org/docs/Profile
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen name ="Root" component={WelcomeScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name='Main' component={BottomTabNavigator}/>
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
+      <Stack.Screen name='SellItem' component={SellItems}/>
+      <Stack.Screen name='itempage' component={itempage}/>
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Group>
     </Stack.Navigator>
   );
@@ -56,40 +63,49 @@ const BottomTab = createBottomTabNavigator<RootTabParamList>();
 function BottomTabNavigator() {
   const colorScheme = useColorScheme();
 
+  const[searchquery, setsearchquery] = React.useState('');
+  const onchangeSearch = (query: React.SetStateAction<string>) => setsearchquery(query);
+
+  function searchforitems(){
+    //this piece of code make the search using firebase firestore
+    console.log('working')
+
+    const [size, setsize] = React.useState(0)
+  }
+
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].tint,
       }}>
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOneScreen}
-        options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        name="Home"
+        component={HomeScreen}
+        options={({ navigation }: RootTabScreenProps<'Home'>) => ({
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           headerRight: () => (
-            <Pressable
-              onPress={() => navigation.navigate('Modal')}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}>
-              <FontAwesome
-                name="info-circle"
-                size={25}
-                color={Colors[colorScheme].text}
-                style={{ marginRight: 15 }}
-              />
-            </Pressable>
+            <Searchbar 
+            style = { styles.Searchbar }  
+            placeholder=' Search'
+            onChangeText={onchangeSearch}
+            value= {searchquery}
+            icon = "cloud-search"
+            onIconPress={searchforitems}
+            clearAccessibilityLabel = "hide"
+            />
           ),
+          headerLeft: () => (
+            <Pressable onPress={() => navigation.navigate("Profile")}>
+              <Avatar.Text style ={styles.avatar} size={46} label="Xd"/>
+            </Pressable>
+          ) 
         })}
       />
       <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoScreen}
+        name="cards"
+        component={cardsScreen}
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="credit-card" color={color} />,
         }}
       />
     </BottomTab.Navigator>
@@ -105,3 +121,20 @@ function TabBarIcon(props: {
 }) {
   return <FontAwesome size={30} style={{ marginBottom: -3 }} {...props} />;
 }
+
+
+const styles = StyleSheet.create({
+  Searchbar:{
+    width: '70%'
+
+  },
+  avatar:{
+    marginLeft: 22
+  }
+})
+
+
+/*
+
+
+*/
